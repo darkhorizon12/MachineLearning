@@ -100,7 +100,7 @@ J = np.array(j_array).reshape(W.shape)
 # ax.set_zlabel('J')
 # plt.show()
 # 계단함수는 미분이 불가능하기 때문에 사용할 수 없다
-# 2. 시그모이드 함수(Sigmoid Funciton)
+# 2. 활성화함수: 시그모이드 함수(Sigmoid Funciton)
 
 sigmoid = lambda x: 1.0 / (1.0 + np.exp(-x))
 
@@ -144,13 +144,57 @@ for we, be in zip(np.ravel(W), np.ravel(B)):
 J = np.array(j_loss).reshape(W.shape)
 
 # 서피스 그래프를 그린다
-fig = plt.figure()
-ax = plt.axes(projection="3d")
-ax.plot_surface(W, B, J, color='b', alpha=0.5)
-ax.set_xlabel('w')
-ax.set_ylabel('b')
-ax.set_zlabel('J')
-plt.show()
+# fig = plt.figure()
+# ax = plt.axes(projection="3d")
+# ax.plot_surface(W, B, J, color='b', alpha=0.5)
+# ax.set_xlabel('w')
+# ax.set_ylabel('b')
+# ax.set_zlabel('J')
+# plt.show()
 
-# RMSProp 적용
+# 매개변수 경신(Optimizer): RMSProp 적용
 # : 급경사인 경우에는 보폭을 낮추어서 가장 아래인지를 세밀히 살피고, 완만한 경사인 경우에는 보폭을 넓혀서 빨리 지나가는 방식
+
+### 로지스틱 모델 정리
+# 1. z = Wx + b 함수 정리
+# 2. a = 활성화함수(z)
+# 3. y = a
+# 4. 손실 함수 정의: Cross-cross_entropy_loss
+# 5. 옵티마이저 선택: RMSProp
+# 6. 반복할 회수(epoch) 결정
+# 7. 주어진 조건으로 모델 최적화
+
+# 정규화(Normalization)
+# 정규값 = (현재값 - 최소값) / (최대값 - 최소값)
+
+from sklearn import preprocessing
+
+mm_scaler = preprocessing.MinMaxScaler()
+X_train = mm_scaler.fit_transform(x)
+Y_train = y
+
+# plt.scatter(X_train, Y_train)
+# plt.xlabel('scaled-height')
+# plt.ylabel('chinchu')
+# plt.show()
+
+# 모델링(Modeling)
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Activation
+
+# 모델 준비
+model = Sequential()
+
+# 입력 변수의 개수가 1이고 출력 개수가 1인 y = sigmoid(wx + b) 생성
+model.add(Dense(1, input_dim=1, activation='sigmoid'))
+
+# Loss Function과 Optimizer를 선택
+model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+
+# epochs만큼 반복해서 손실값이 최저가 되도록 모델을 훈련
+hist = model.fit(X_train, Y_train, epochs=10000, batch_size=20, verbose=0)
+
+plt.plot(hist.history['loss'])
+plt.xlabel('epoch')
+plt.ylabel('loss')
+plt.show()
